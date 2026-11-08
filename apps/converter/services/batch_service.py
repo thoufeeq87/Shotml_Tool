@@ -32,16 +32,25 @@ def start_batch(batch_id):
     threading.Thread(target=process_batch, args=(batch_id,), daemon=True).start()
 
 
-def process_batch(batch_id, generate=generate_with_fallback):
-    """Convert each slot in order. A failed slot never stops the others."""
+def process_batch(batch_id, generate=None, on_slot_start=None, on_slot_done=None):
+    """Convert each slot in order. A failed slot never stops the others.
+
+    The optional callbacks receive the slot before and after it is converted;
+    the command line uses them to print live progress.
+    """
+    generate = generate or generate_with_fallback
     close_old_connections()
     try:
         batch = Batch.objects.get(pk=batch_id)
         prompt = load_prompt()
         for slot in batch.slots.all():
+            if on_slot_start:
+                on_slot_start(slot)
             convert_slot(slot, prompt, generate)
             if not batch.keep_images:
                 delete_slot_image(slot)
+            if on_slot_done:
+                on_slot_done(slot)
     except Exception:
         logger.exception("Batch %s crashed", batch_id)
     finally:
