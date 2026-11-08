@@ -1,0 +1,6 @@
+django>=6.1,<6.2
+anthropic
+google-genai
+openai
+Pillow
+python-dotenv
