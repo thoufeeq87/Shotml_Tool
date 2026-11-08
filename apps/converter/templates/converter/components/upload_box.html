@@ -1,0 +1,19 @@
+{% comment %}
+Reusable upload box with previews and friendly messages (filled in by upload.js).
+Parameters: max_files, max_mb.
+{% endcomment %}
+<div id="dropzone" class="nb-dropzone">
+  <label for="screenshots" class="flex w-full cursor-pointer flex-col items-center gap-2">
+    <span class="font-heading text-xl font-bold">Choose or drop up to {{ max_files }} screenshots</span>
+    <span class="text-sm">PNG, JPG or WebP, up to {{ max_mb }} MB each</span>
+    <span class="nb-button nb-button-surface nb-button-small mt-2">Browse files</span>
+  </label>
+  <input id="screenshots" type="file" class="sr-only" accept="image/png,image/jpeg,image/webp" multiple>
+</div>
+
+<div id="upload-messages" class="nb-message mt-4" role="alert" hidden></div>
+
+<div class="mt-6" id="preview-area" hidden>
+  <p id="preview-count" class="mb-3 font-heading font-bold" aria-live="polite"></p>
+  <ul id="preview-grid" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5"></ul>
+</div>

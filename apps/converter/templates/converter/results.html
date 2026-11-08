@@ -1,0 +1,28 @@
+{% extends "converter/base.html" %}
+{% load static %}
+
+{% block title %}Results | Shotml Tool{% endblock %}
+
+{% block content %}
+<h1 class="mb-2 text-3xl sm:text-4xl">Your code</h1>
+<p class="mb-2">{{ finished }} of {{ slots|length }} screenshot{{ slots|length|pluralize }} converted.</p>
+<p class="mb-8 text-sm">
+  {% if batch.keep_images %}Your pictures are kept. You can open this batch again from the converter page.
+  {% else %}Your pictures were deleted. The code stays saved so you can copy it.{% endif %}
+</p>
+
+<div class="grid gap-10">
+  {% for slot in slots %}
+    {% include "converter/partials/slot_card.html" %}
+  {% endfor %}
+</div>
+
+<div class="mt-12">
+  {% url 'converter:converter' as converter_url %}
+  {% include "converter/components/button.html" with label="Convert more screenshots" href=converter_url variant="nb-button-secondary" %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'converter/js/results.js' %}"></script>
+{% endblock %}

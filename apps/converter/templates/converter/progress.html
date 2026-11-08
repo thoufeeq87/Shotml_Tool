@@ -1,0 +1,32 @@
+{% extends "converter/base.html" %}
+{% load static %}
+
+{% block title %}Converting | Shotml Tool{% endblock %}
+
+{% block content %}
+<h1 class="mb-2 text-3xl sm:text-4xl">Converting your screenshots</h1>
+<p class="mb-8">Please keep this page open. It moves on by itself when everything is finished.</p>
+
+<section id="progress-app" class="nb-card nb-card-lime"
+         data-status-url="{% url 'converter:status' batch.id %}"
+         data-results-url="{% url 'converter:results' batch.id %}">
+  <p id="progress-text" class="font-heading text-3xl font-bold" aria-live="polite">{{ batch.done_count }} of {{ slots|length }} done</p>
+  <div class="mt-4 h-6 border bg-canvas" role="progressbar" aria-valuemin="0" aria-valuemax="{{ slots|length }}" aria-valuenow="{{ batch.done_count }}">
+    <div id="progress-fill" class="h-full bg-secondary transition-all duration-300" style="width: 0%"></div>
+  </div>
+
+  <ul class="mt-6 grid gap-3">
+    {% for slot in slots %}
+    <li class="flex flex-wrap items-center justify-between gap-2 border bg-canvas p-3" data-slot="{{ slot.position }}">
+      <span class="min-w-0 break-all font-medium">{{ slot.position }}. {{ slot.original_name }}</span>
+      {% include "converter/components/status_badge.html" with status=slot.status %}
+    </li>
+    {% endfor %}
+  </ul>
+  <p id="progress-error" class="nb-message mt-4" role="alert" hidden>We lost the connection. We will keep trying.</p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'converter/js/progress.js' %}"></script>
+{% endblock %}

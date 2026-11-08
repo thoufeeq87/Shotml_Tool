@@ -1,0 +1,73 @@
+{% extends "converter/base.html" %}
+
+{% block title %}Shotml Tool: screenshots to HTML and CSS{% endblock %}
+
+{% block content %}
+{# Hero #}
+<section class="grid gap-8 py-4 sm:py-8" aria-labelledby="hero-heading">
+  <div>
+    <p class="mb-4">{% include "converter/components/tag.html" with label="Free tool for developers and designers" %}</p>
+    <h1 id="hero-heading" class="text-4xl leading-tight sm:text-6xl">Turn screenshots into clean HTML and CSS.</h1>
+    <p class="mt-6 max-w-2xl text-lg">Upload up to {{ max_files }} screenshots or mockups. For each one you get tidy, ready-to-use code with a live preview, and it works on phones too.</p>
+    <div class="mt-8">
+      {% url 'converter:converter' as converter_url %}
+      {% include "converter/components/button.html" with label="Start converting" href=converter_url %}
+    </div>
+  </div>
+</section>
+
+{# What it does #}
+<section class="mt-16" aria-labelledby="what-heading">
+  <h2 id="what-heading" class="mb-6 text-3xl">What it does</h2>
+  <div class="nb-card nb-card-lime">
+    <p>You give it a picture of a page. It gives you plain HTML and plain CSS with simple, readable names like <span class="font-heading font-bold">hero</span> or <span class="font-heading font-bold">main-button</span>. The colours, fonts and spacing are listed once at the top of the CSS, so they are easy to change. No frameworks, no extra libraries.</p>
+  </div>
+</section>
+
+{# How it works #}
+<section class="mt-16" aria-labelledby="steps-heading">
+  <h2 id="steps-heading" class="mb-6 text-3xl">How it works</h2>
+  <ol class="grid gap-6 sm:grid-cols-3">
+    <li class="nb-card">
+      <h3 class="mb-2 text-xl"><span class="mr-2 inline-block border bg-primary px-2">1</span>Upload</h3>
+      <p>Choose up to {{ max_files }} screenshots and decide if your pictures are kept or deleted afterwards.</p>
+    </li>
+    <li class="nb-card">
+      <h3 class="mb-2 text-xl"><span class="mr-2 inline-block border bg-secondary px-2">2</span>Convert</h3>
+      <p>We convert them one at a time and show you live progress for each screenshot.</p>
+    </li>
+    <li class="nb-card">
+      <h3 class="mb-2 text-xl"><span class="mr-2 inline-block border bg-accent px-2">3</span>Copy or download</h3>
+      <p>See a live preview, then copy or download the HTML and CSS.</p>
+    </li>
+  </ol>
+</section>
+
+{# The three AIs #}
+<section class="mt-16" aria-labelledby="ai-heading">
+  <h2 id="ai-heading" class="mb-2 text-3xl">Three AIs, so you rarely get stuck</h2>
+  <p class="mb-6">Claude goes first. If it fails, the tool automatically tries Gemini, then OpenAI.</p>
+  <ul class="grid gap-6 sm:grid-cols-3">
+    <li class="nb-card nb-card-lime"><p class="font-heading text-sm font-bold">FIRST TRY</p><h3 class="text-2xl">Claude</h3></li>
+    <li class="nb-card nb-card-lime"><p class="font-heading text-sm font-bold">SECOND TRY</p><h3 class="text-2xl">Gemini</h3></li>
+    <li class="nb-card nb-card-lime"><p class="font-heading text-sm font-bold">LAST TRY</p><h3 class="text-2xl">OpenAI</h3></li>
+  </ul>
+</section>
+
+{# Privacy promise #}
+<section class="mt-16" aria-labelledby="privacy-heading">
+  <h2 id="privacy-heading" class="mb-6 text-3xl">Our privacy promise</h2>
+  <div class="nb-card bg-primary">
+    <ul class="list-disc space-y-2 pl-5">
+      <li>Your pictures are sent to the AI service only to make the code.</li>
+      <li>You choose: <strong>keep</strong> your pictures here, or <strong>delete</strong> them. Deleted pictures are removed right after each one is converted.</li>
+      <li>The code we make for you stays saved so you can copy it, even if you delete the pictures. You can remove a whole kept batch at any time.</li>
+    </ul>
+  </div>
+</section>
+
+{# Final call to action #}
+<section class="mt-16 text-center">
+  {% include "converter/components/button.html" with label="Start converting" href=converter_url variant="nb-button-secondary" %}
+</section>
+{% endblock %}

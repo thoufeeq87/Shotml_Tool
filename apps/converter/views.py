@@ -2,12 +2,12 @@
 
 from django.conf import settings
 from django.http import Http404, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
-from .models import Batch
+from .models import Batch, Slot
 from .services import batch_service
-from .services.output_parser import build_preview
 from .services.upload_validation import validate_upload
 
 
@@ -25,22 +25,20 @@ def _own_batch(request, batch_id):
     return batch
 
 
+def _limits():
+    return {"max_files": settings.MAX_FILES_PER_BATCH, "max_mb": settings.MAX_UPLOAD_MB}
+
+
 @require_GET
-def tool(request):
-    """The one and only page."""
+def landing(request):
+    return render(request, "converter/landing.html", _limits())
+
+
+@require_GET
+def converter(request):
     session_key = _session_key(request)
     past_batches = Batch.objects.filter(session_key=session_key, keep_images=True, status=Batch.Status.DONE)[:10]
-    open_batch = request.GET.get("batch", "")
-    return render(
-        request,
-        "converter/tool.html",
-        {
-            "past_batches": past_batches,
-            "open_batch": open_batch,
-            "max_files": settings.MAX_FILES_PER_BATCH,
-            "max_mb": settings.MAX_UPLOAD_MB,
-        },
-    )
+    return render(request, "converter/converter.html", {"past_batches": past_batches, **_limits()})
 
 
 @require_POST
@@ -54,41 +52,47 @@ def start(request):
     keep_images = request.POST.get("keep_images", "keep") == "keep"
     batch = batch_service.create_batch(_session_key(request), files, keep_images)
     batch_service.start_batch(batch.pk)
-    return JsonResponse({"batch_id": str(batch.pk)})
+    return JsonResponse({"batch_id": str(batch.pk), "progress_url": reverse("converter:progress", args=[batch.pk])})
+
+
+@require_GET
+def progress(request, batch_id):
+    batch = _own_batch(request, batch_id)
+    if batch.status == Batch.Status.DONE:
+        return redirect("converter:results", batch_id=batch.pk)
+    return render(request, "converter/progress.html", {"batch": batch, "slots": batch.slots.all()})
 
 
 @require_GET
 def status(request, batch_id):
-    """Progress plus the code of finished screenshots. `rendered` lists positions the page already has."""
+    """Progress numbers and each screenshot's status, for the progress page to poll."""
     batch = _own_batch(request, batch_id)
-    rendered = {int(p) for p in request.GET.get("rendered", "").split(",") if p.isdigit()}
+    slots = [{"position": s.position, "status": s.status} for s in batch.slots.all()]
+    return JsonResponse({"status": batch.status, "total": len(slots), "done": batch.done_count, "slots": slots})
 
-    slots = []
-    for slot in batch.slots.all():
-        item = {
-            "position": slot.position,
-            "name": slot.original_name,
-            "status": slot.status,
-            "provider": slot.provider,
-            "error": slot.error,
-        }
-        if slot.status == "done" and slot.position not in rendered:
-            item.update(html=slot.html, css=slot.css, preview=build_preview(slot.html, slot.css))
-        slots.append(item)
 
-    return JsonResponse(
-        {
-            "status": batch.status,
-            "total": len(slots),
-            "done": batch.done_count,
-            "keep_images": batch.keep_images,
-            "slots": slots,
-        }
-    )
+@require_GET
+def results(request, batch_id):
+    batch = _own_batch(request, batch_id)
+    if batch.status != Batch.Status.DONE:
+        return redirect("converter:progress", batch_id=batch.pk)
+    slots = list(batch.slots.all())
+    finished = sum(1 for slot in slots if slot.status == Slot.Status.DONE)
+    return render(request, "converter/results.html", {"batch": batch, "slots": slots, "finished": finished})
+
+
+@require_POST
+def retry(request, batch_id, position):
+    """Run one failed screenshot again."""
+    batch = _own_batch(request, batch_id)
+    slot = get_object_or_404(batch.slots, position=position)
+    if batch_service.retry_slot(slot):
+        return redirect("converter:progress", batch_id=batch.pk)
+    return redirect("converter:results", batch_id=batch.pk)
 
 
 @require_POST
 def delete(request, batch_id):
     """Remove a kept batch."""
     batch_service.delete_batch(_own_batch(request, batch_id))
-    return JsonResponse({"deleted": True})
+    return redirect("converter:converter")

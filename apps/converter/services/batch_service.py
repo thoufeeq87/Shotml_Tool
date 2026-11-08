@@ -27,23 +27,39 @@ def create_batch(session_key, files, keep_images):
     return batch
 
 
-def start_batch(batch_id):
+def start_batch(batch_id, only_pending=False):
     """Run the conversion in a background thread so the page stays responsive."""
-    threading.Thread(target=process_batch, args=(batch_id,), daemon=True).start()
+    threading.Thread(
+        target=process_batch, args=(batch_id,), kwargs={"only_pending": only_pending}, daemon=True
+    ).start()
 
 
-def process_batch(batch_id, generate=None, on_slot_start=None, on_slot_done=None):
+def retry_slot(slot):
+    """Queue one failed screenshot to run again. Returns False if it cannot be retried."""
+    if slot.status != Slot.Status.FAILED or not slot.image:
+        return False
+    slot.status = Slot.Status.PENDING
+    slot.error = ""
+    slot.save(update_fields=["status", "error"])
+    Batch.objects.filter(pk=slot.batch_id).update(status=Batch.Status.RUNNING)
+    start_batch(slot.batch_id, only_pending=True)
+    return True
+
+
+def process_batch(batch_id, generate=None, on_slot_start=None, on_slot_done=None, only_pending=False):
     """Convert each slot in order. A failed slot never stops the others.
 
     The optional callbacks receive the slot before and after it is converted;
-    the command line uses them to print live progress.
+    the command line uses them to print live progress. With only_pending,
+    slots that are already finished are skipped (used by retry).
     """
     generate = generate or generate_with_fallback
     close_old_connections()
     try:
         batch = Batch.objects.get(pk=batch_id)
         prompt = load_prompt()
-        for slot in batch.slots.all():
+        slots = batch.slots.filter(status=Slot.Status.PENDING) if only_pending else batch.slots.all()
+        for slot in slots:
             if on_slot_start:
                 on_slot_start(slot)
             convert_slot(slot, prompt, generate)

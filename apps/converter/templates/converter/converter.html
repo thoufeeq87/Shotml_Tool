@@ -1,0 +1,67 @@
+{% extends "converter/base.html" %}
+{% load static %}
+
+{% block title %}Converter | Shotml Tool{% endblock %}
+
+{% block content %}
+<h1 class="mb-2 text-3xl sm:text-4xl">Convert your screenshots</h1>
+<p class="mb-8">Upload up to {{ max_files }} screenshots. We turn each one into plain HTML and CSS.</p>
+
+<form id="upload-form" novalidate
+      data-start-url="{% url 'converter:start' %}"
+      data-max-files="{{ max_files }}"
+      data-max-mb="{{ max_mb }}">
+  {% csrf_token %}
+
+  {# Step 1: upload box #}
+  <section class="nb-card nb-card-lime" aria-labelledby="upload-heading">
+    <h2 id="upload-heading" class="mb-4 text-2xl">1. Pick your screenshots</h2>
+    {% include "converter/components/upload_box.html" %}
+  </section>
+
+  {# Step 2: keep or delete #}
+  <fieldset class="nb-card mt-8">
+    <legend class="mb-3 bg-primary px-2 font-heading text-xl font-bold">2. What happens to your pictures?</legend>
+    <div class="grid gap-3 sm:grid-cols-2">
+      <label class="flex min-h-[48px] cursor-pointer items-center gap-3 border bg-canvas p-3 has-[:checked]:bg-secondary">
+        <input type="radio" name="keep_images" value="keep" class="h-5 w-5 accent-ink" checked>
+        <span><strong>Keep them</strong><br><span class="text-sm">Saved so you can come back later.</span></span>
+      </label>
+      <label class="flex min-h-[48px] cursor-pointer items-center gap-3 border bg-canvas p-3 has-[:checked]:bg-accent">
+        <input type="radio" name="keep_images" value="delete" class="h-5 w-5 accent-ink">
+        <span><strong>Delete them</strong><br><span class="text-sm">Removed right after each conversion.</span></span>
+      </label>
+    </div>
+  </fieldset>
+
+  <div class="mt-8">
+    {% include "converter/components/button.html" with label="Convert to HTML and CSS" type="submit" id="convert-button" variant="nb-button-secondary" %}
+  </div>
+</form>
+
+{# Kept batches #}
+{% if past_batches %}
+<section class="mt-16" aria-labelledby="past-heading">
+  <h2 id="past-heading" class="mb-4 text-2xl">Your kept batches</h2>
+  <ul class="grid gap-4">
+    {% for batch in past_batches %}
+    <li class="nb-card flex flex-wrap items-center justify-between gap-3">
+      <span>{{ batch.created|date:"j M Y, H:i" }} ({{ batch.slots.count }} screenshot{{ batch.slots.count|pluralize }})</span>
+      <span class="flex flex-wrap gap-3">
+        {% url 'converter:results' batch.id as results_url %}
+        {% include "converter/components/button.html" with label="Open" href=results_url size="nb-button-small" %}
+        <form method="post" action="{% url 'converter:delete' batch.id %}" data-confirm="Delete this batch, its pictures and its code?">
+          {% csrf_token %}
+          {% include "converter/components/button.html" with label="Delete" type="submit" variant="nb-button-accent" size="nb-button-small" %}
+        </form>
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'converter/js/upload.js' %}"></script>
+{% endblock %}

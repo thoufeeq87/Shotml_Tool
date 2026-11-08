@@ -1,0 +1,64 @@
+{% load converter_extras %}
+{# One result card. Expects: slot, batch #}
+<article class="nb-card" aria-labelledby="slot-{{ slot.position }}-title">
+  <header class="mb-4 flex flex-wrap items-center justify-between gap-2">
+    <h2 id="slot-{{ slot.position }}-title" class="min-w-0 break-all text-xl">{{ slot.position }}. {{ slot.original_name }}</h2>
+    {% if slot.status == "done" %}
+      {% with name=slot.provider|provider_label %}
+        {% include "converter/components/tag.html" with label="Made by "|add:name %}
+      {% endwith %}
+    {% else %}
+      {% include "converter/components/status_badge.html" with status=slot.status %}
+    {% endif %}
+  </header>
+
+  {% if slot.status == "done" %}
+    {# Live preview #}
+    <div class="mb-6" data-preview>
+      <div class="mb-3 flex flex-wrap items-center gap-2">
+        <span class="font-heading text-sm font-bold">Live preview</span>
+        <button type="button" class="nb-button nb-button-small nb-button-secondary" data-device="100%" aria-pressed="true">Desktop</button>
+        <button type="button" class="nb-button nb-button-small nb-button-surface" data-device="768px" aria-pressed="false">Tablet</button>
+        <button type="button" class="nb-button nb-button-small nb-button-surface" data-device="375px" aria-pressed="false">Phone</button>
+      </div>
+      <iframe class="mx-auto block h-96 w-full max-w-full border bg-surface" sandbox
+              title="Live preview of {{ slot.original_name }}"
+              srcdoc="{{ slot|preview_document }}"></iframe>
+    </div>
+
+    {# Code boxes #}
+    <div class="grid gap-6">
+      <section aria-labelledby="slot-{{ slot.position }}-html">
+        <div class="mb-2 flex flex-wrap items-center gap-2">
+          <h3 id="slot-{{ slot.position }}-html" class="mr-auto text-lg">HTML</h3>
+          <button type="button" class="nb-button nb-button-small nb-button-surface" data-copy="slot-{{ slot.position }}-html-code">Copy</button>
+          <button type="button" class="nb-button nb-button-small nb-button-secondary" data-download="slot-{{ slot.position }}-html-code" data-filename="index.html" data-mime="text/html">Download</button>
+        </div>
+        <pre class="nb-code" tabindex="0"><code id="slot-{{ slot.position }}-html-code">{{ slot.html }}</code></pre>
+      </section>
+
+      <section aria-labelledby="slot-{{ slot.position }}-css">
+        <div class="mb-2 flex flex-wrap items-center gap-2">
+          <h3 id="slot-{{ slot.position }}-css" class="mr-auto text-lg">CSS</h3>
+          <button type="button" class="nb-button nb-button-small nb-button-surface" data-copy="slot-{{ slot.position }}-css-code">Copy</button>
+          <button type="button" class="nb-button nb-button-small nb-button-secondary" data-download="slot-{{ slot.position }}-css-code" data-filename="style.css" data-mime="text/css">Download</button>
+        </div>
+        <pre class="nb-code" tabindex="0"><code id="slot-{{ slot.position }}-css-code">{{ slot.css }}</code></pre>
+      </section>
+    </div>
+
+  {% elif slot.status == "failed" %}
+    <p class="nb-message mb-4">We could not convert this screenshot, even after trying all three AIs.</p>
+    {% if slot.image %}
+      <form method="post" action="{% url 'converter:retry' batch.id slot.position %}">
+        {% csrf_token %}
+        {% include "converter/components/button.html" with label="Retry this screenshot" type="submit" variant="nb-button-accent" %}
+      </form>
+    {% else %}
+      <p class="text-sm">Its picture was deleted, so it cannot be retried. Please upload it again.</p>
+    {% endif %}
+
+  {% else %}
+    <p>This screenshot is still being converted.</p>
+  {% endif %}
+</article>

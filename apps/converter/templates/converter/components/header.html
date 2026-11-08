@@ -1,0 +1,10 @@
+{# Shared header #}
+<header class="border-b bg-surface">
+  <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
+    <a href="{% url 'converter:landing' %}" class="border bg-primary px-3 py-2 font-heading text-lg font-bold shadow-nb-accent">Shotml Tool</a>
+    <nav aria-label="Main navigation" class="flex items-center gap-2 font-heading text-sm font-bold">
+      <a href="{% url 'converter:landing' %}" class="flex min-h-[44px] items-center px-3 hover:bg-secondary">Home</a>
+      <a href="{% url 'converter:converter' %}" class="flex min-h-[44px] items-center border bg-secondary px-3">Converter</a>
+    </nav>
+  </div>
+</header>

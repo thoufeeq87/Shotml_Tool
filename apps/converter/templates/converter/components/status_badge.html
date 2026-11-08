@@ -1,0 +1,1 @@
+{% comment %}Status tag for a screenshot. Parameter: status (pending, working, done, failed).{% endcomment %}<span class="nb-tag nb-status-{{ status }}" data-status-badge>{% if status == "pending" %}Waiting{% elif status == "working" %}Working{% elif status == "done" %}Done{% else %}Failed{% endif %}</span>

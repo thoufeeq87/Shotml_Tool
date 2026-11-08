@@ -1,0 +1,5 @@
+{% comment %}
+Reusable button.
+Parameters: label (required), href (makes it a link), type (button or submit),
+variant (nb-button-secondary, nb-button-surface, nb-button-accent), size (nb-button-small), id.
+{% endcomment %}{% if href %}<a href="{{ href }}" {% if id %}id="{{ id }}" {% endif %}class="nb-button {{ variant }} {{ size }}">{{ label }}</a>{% else %}<button type="{{ type|default:'button' }}" {% if id %}id="{{ id }}" {% endif %}class="nb-button {{ variant }} {{ size }}">{{ label }}</button>{% endif %}

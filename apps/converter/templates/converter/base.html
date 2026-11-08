@@ -1,0 +1,103 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Shotml Tool{% endblock %}</title>
+
+  {# Fonts #}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  {# Tailwind (CDN) - used for this app's own screens only #}
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    /* Design tokens: colours, fonts, border width and shadow live here, once. */
+    const colors = {
+      primary: "#fde047",
+      secondary: "#a3e635",
+      accent: "#fb923c",
+      canvas: "#fef3c7",
+      surface: "#ffffff",
+      ink: "#1c1917",
+    };
+    const offset = "5px";
+    const hoverOffset = "2px";
+
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: colors,
+          fontFamily: {
+            heading: ['"Space Mono"', "monospace"],
+            body: ["Inter", "sans-serif"],
+          },
+          borderWidth: { DEFAULT: "3px" },
+          borderColor: { DEFAULT: colors.ink },
+          borderRadius: { none: "0px", sm: "0px", DEFAULT: "0px", md: "0px", lg: "0px", xl: "0px", "2xl": "0px", full: "0px" },
+          boxShadow: {
+            "nb-secondary": offset + " " + offset + " 0 0 " + colors.secondary,
+            "nb-secondary-hover": hoverOffset + " " + hoverOffset + " 0 0 " + colors.secondary,
+            "nb-accent": offset + " " + offset + " 0 0 " + colors.accent,
+            "nb-accent-hover": hoverOffset + " " + hoverOffset + " 0 0 " + colors.accent,
+            "nb-pressed": "0 0 0 0 transparent",
+          },
+        },
+      },
+    };
+  </script>
+
+  {# Reusable component classes built from the tokens above #}
+  <style type="text/tailwindcss">
+    @layer base {
+      body { @apply bg-canvas text-ink font-body antialiased; }
+      h1, h2, h3, h4 { @apply font-heading font-bold; }
+    }
+    @layer components {
+      /* Buttons: slide toward their shadow on hover and press */
+      .nb-button {
+        @apply inline-flex min-h-[48px] cursor-pointer items-center justify-center gap-2 border bg-primary px-5 py-3 font-heading font-bold text-ink shadow-nb-secondary transition-all duration-100;
+      }
+      .nb-button:hover { @apply translate-x-[3px] translate-y-[3px] shadow-nb-secondary-hover; }
+      .nb-button:active { @apply translate-x-[5px] translate-y-[5px] shadow-nb-pressed; }
+      .nb-button:disabled { @apply cursor-not-allowed opacity-50; }
+      .nb-button-secondary { @apply bg-secondary shadow-nb-accent; }
+      .nb-button-secondary:hover { @apply shadow-nb-accent-hover; }
+      .nb-button-surface { @apply bg-surface; }
+      .nb-button-accent { @apply bg-accent shadow-nb-secondary; }
+      .nb-button-small { @apply min-h-[44px] px-4 py-2 text-sm; }
+
+      /* Cards */
+      .nb-card { @apply border bg-surface p-5 shadow-nb-accent sm:p-6; }
+      .nb-card-lime { @apply shadow-nb-secondary; }
+
+      /* Tags and status badges */
+      .nb-tag { @apply inline-block border bg-secondary px-2 py-1 font-heading text-xs font-bold uppercase; }
+      .nb-status-pending { @apply bg-surface; }
+      .nb-status-working { @apply bg-primary; }
+      .nb-status-done { @apply bg-secondary; }
+      .nb-status-failed { @apply bg-accent; }
+
+      /* Upload box */
+      .nb-dropzone { @apply flex cursor-pointer flex-col items-center gap-2 border border-dashed bg-surface p-8 text-center transition-colors; }
+      .nb-dropzone:hover, .nb-dropzone-active { @apply bg-primary; }
+
+      /* Messages and code boxes */
+      .nb-message { @apply border bg-accent p-4 font-medium; }
+      .nb-code { @apply max-h-80 overflow-auto border bg-ink p-4 font-heading text-xs leading-relaxed text-canvas; }
+    }
+  </style>
+</head>
+<body class="flex min-h-screen flex-col">
+  <a href="#main" class="sr-only focus:not-sr-only focus:bg-primary focus:p-3">Skip to content</a>
+  {% include "converter/components/header.html" %}
+
+  <main id="main" class="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "converter/components/footer.html" %}
+  {% block scripts %}{% endblock %}
+</body>
+</html>
